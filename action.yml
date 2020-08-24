@@ -1,0 +1,19 @@
+name: 'Multimerge'
+description: 'Github Action for multiple branches merging'
+author: Alter Lagos
+inputs:
+  accessToken:
+    description: 'Github token. Usually secrets.GITHUB_TOKEN'
+    required: true
+  headBranch:
+    description: 'Branch to merge'
+    required: true
+  branchRegex:
+    description: 'Regex pattern for all branches to be updated'
+    required: false
+runs:
+  using: 'node12'
+  main: 'index.js'
+branding:
+  icon: 'git-merge'
+  color: 'orange'
