@@ -19,7 +19,7 @@ Regex pattern for all branches to be updated.
 ## Example usage
 
 ```yaml
-uses: visfleet/multimerge@v1
+uses: alagos/multimerge@v1.0
 with:
   accessToken: ${{ secrets.GITHUB_TOKEN }}
   headBranch: master
