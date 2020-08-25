@@ -1,4 +1,4 @@
-name: 'Multimerge'
+name: 'Regex Merge'
 description: 'Github Action for multiple branches merging'
 author: Alter Lagos
 inputs:

@@ -1,4 +1,4 @@
-# Multi Merge
+# Regex Merge
 
 Github Action for multiple branches merging
 
@@ -19,7 +19,7 @@ Regex pattern for all branches to be updated.
 ## Example usage
 
 ```yaml
-uses: alagos/multimerge@v1.0
+uses: alagos/regex-merge@v1.0
 with:
   accessToken: ${{ secrets.GITHUB_TOKEN }}
   headBranch: master

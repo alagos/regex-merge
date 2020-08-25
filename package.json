@@ -1,5 +1,5 @@
 {
-  "name": "multimerge",
+  "name": "regex-merge",
   "version": "1.0.0",
   "description": "Github Action for multiple branches merging",
   "main": "index.js",
