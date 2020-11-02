@@ -11,6 +11,10 @@ inputs:
   branchRegex:
     description: 'Regex pattern for all branches to be updated'
     required: false
+  notifyConflicts:
+    description: 'Comments in related PR to branch, notifying about the merge conflict'
+    required: false
+    default: true
 runs:
   using: 'node12'
   main: 'index.js'

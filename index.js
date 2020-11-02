@@ -4,9 +4,11 @@ var requestError = require("@octokit/request-error");
 
 const [owner, repo] = process.env.GITHUB_REPOSITORY.split("/");
 const accessToken = core.getInput("accessToken");
-const octokit = github.getOctokit(accessToken);
 const headBranch = core.getInput("headBranch");
 let branchRegex = core.getInput("branchRegex");
+const notifyConflicts = core.getInput("notifyConflicts");
+
+const octokit = github.getOctokit(accessToken);
 if (branchRegex) {
   branchRegex = new RegExp(branchRegex);
   console.log(`Filtering braches with regex: ${branchRegex}`);
@@ -23,13 +25,9 @@ async function run() {
     });
     console.log(`${branches.length} branches on page ${currentPage}`);
 
-    branches.forEach(({ name, ...br }) => {
-      if (branchRegex) {
-        if (name.match(branchRegex)) {
-          mergeWithMaster(name);
-        }
-      } else {
-        mergeWithMaster(name);
+    branches.forEach(({ name, commit: { sha } }) => {
+      if (!branchRegex || name.match(branchRegex)) {
+        mergeToHead(name).catch((e) => handleRequestError(e, name, sha));
       }
     });
     if (branches.length == 0) {
@@ -40,35 +38,71 @@ async function run() {
   }
 }
 
-async function mergeWithMaster(branch) {
+async function mergeToHead(branch) {
   if (branch == headBranch) {
     return;
   }
-  try {
-    const { status, ...response } = await octokit.repos.merge({
-      owner: owner,
-      repo: repo,
-      base: branch,
-      head: headBranch,
-    });
-    switch (status) {
-      case 201:
-        console.log(`Merging ${headBranch} to ${branch} successful`);
-        break;
-      case 204:
-        console.log(`Nothing to merge from ${headBranch} to ${branch}`);
-        break;
-      default:
-        console.warn(`Merging ${headBranch} to ${branch}:`, response);
-        break;
+  const { status, ...response } = await octokit.repos.merge({
+    owner: owner,
+    repo: repo,
+    base: branch,
+    head: headBranch,
+  });
+  switch (status) {
+    case 201:
+      console.log(`Merging ${headBranch} to ${branch} successful`);
+      break;
+    case 204:
+      console.log(`Nothing to merge from ${headBranch} to ${branch}`);
+      break;
+    default:
+      console.warn(`Merging ${headBranch} to ${branch}:`, response);
+      break;
+  }
+}
+
+function handleRequestError(error, branch, sha) {
+  let msg;
+  if (error instanceof requestError.RequestError) {
+    if (error.status == 409) {
+      commentInPr(branch, sha);
+    } else {
+      msg = `[${error.status}] ${error.message}`;
     }
-  } catch (error) {
-    let msg = error;
-    if (error instanceof requestError.RequestError) {
-      msg = `[${error.status}] ${error.message}`
-    }
+  } else {
+    msg = error;
+  }
+  if (msg) {
     console.error(`Error merging ${headBranch} to ${branch}:`, msg);
   }
+}
+
+function commentInPr(branch, branchSha) {
+  if (!notifyConflicts) {
+    return;
+  }
+  octokit.pulls
+    .list({
+      owner: owner,
+      repo: repo,
+      state: "open",
+      head: `${owner}:${branch}`,
+    })
+    .then(({ data }) => {
+      const pr = data.find(({ head: { sha } }) => sha == branchSha);
+      if (pr) {
+        const msg = `@${pr.user.login} merge conflicts found.\nPlease merge master manually into this branch.`;
+        console.log(
+          `Merge conflict found for PR #${pr.number}. Notifying to @${pr.user.login}`
+        );
+        octokit.issues.createComment({
+          owner: owner,
+          repo: repo,
+          issue_number: pr.number,
+          body: msg,
+        });
+      }
+    });
 }
 
 run();

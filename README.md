@@ -16,6 +16,10 @@ Github Action for multiple branches merging
 
 Regex pattern for all branches to be updated.
 
+### `notifyConflicts`
+
+Comments in related PR to branch, notifying about the merge conflict.
+
 ## Example usage
 
 ```yaml
