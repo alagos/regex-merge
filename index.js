@@ -18,7 +18,7 @@ async function run() {
   let keepCheckingBranches = true;
   let currentPage = 1;
   while (keepCheckingBranches) {
-    const { data: branches } = await octokit.repos.listBranches({
+    const { data: branches } = await octokit.rest.repos.listBranches({
       owner: owner,
       repo: repo,
       page: currentPage,
@@ -42,7 +42,7 @@ async function mergeToHead(branch) {
   if (branch == headBranch) {
     return;
   }
-  const { status, ...response } = await octokit.repos.merge({
+  const { status, ...response } = await octokit.rest.repos.merge({
     owner: owner,
     repo: repo,
     base: branch,
@@ -81,7 +81,7 @@ function commentInPr(branch, branchSha) {
   if (!notifyConflicts) {
     return;
   }
-  octokit.pulls
+  octokit.rest.pulls
     .list({
       owner: owner,
       repo: repo,
@@ -95,7 +95,7 @@ function commentInPr(branch, branchSha) {
         console.log(
           `Merge conflict found for PR #${pr.number}. Notifying to @${pr.user.login}`
         );
-        octokit.issues.createComment({
+        octokit.rest.issues.createComment({
           owner: owner,
           repo: repo,
           issue_number: pr.number,
