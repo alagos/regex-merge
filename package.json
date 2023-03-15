@@ -1,6 +1,6 @@
 {
   "name": "regex-merge",
-  "version": "1.1.0",
+  "version": "1.2.0",
   "description": "Github Action for multiple branches merging",
   "main": "index.js",
   "scripts": {
